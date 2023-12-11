@@ -1,6 +1,12 @@
 import yaml
 import json
 import datetime
+from datetime import date
+
+
+def was_created_before_earliest_archive(creation_date: date, archive_date: date):
+    return creation_date < archive_date
+
 
 with open("urls.yml", "r") as stream:
     try:
