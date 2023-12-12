@@ -5,7 +5,7 @@ from download_whois import download_whois_creationdate
 from download_ia import download_iacdx_earliestdate
 from compare_urls import was_created_before_earliest_archive
 
-TITLE = "WBM Exclusion Tool"
+TITLE = "WBM Exclusion Helper"
 ICON = "https://archive.org/offshoot_assets/favicon.ico"
 st.set_page_config(page_title=TITLE, page_icon=ICON)
 st.title(TITLE)
