@@ -159,6 +159,6 @@ elif option == "Bulk":
         )
         st.divider()
         if len(unknown) > 0:
-            st.header("Manual Verification Required")
+            st.header("Manual Verification Required", help="For some reason, the program was unable to automatically determine which date comes first (likely due to domain registrar formatting beyond our control). You'll have to manually inspect the dates and make your own conclusions.")
             st.code("\n\n".join(unknown))
             st.divider()
