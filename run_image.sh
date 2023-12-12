@@ -9,4 +9,4 @@ source .env
 set +o allexport
 
 docker image build -t $DOCKER_IMAGE .
-docker container run -d --restart always --rm -it -p 2000:8501 -e API_KEY=$API_KEY $DOCKER_IMAGE
+docker container run -d --restart always -it -p 2000:8501 -e API_KEY=$API_KEY $DOCKER_IMAGE
