@@ -2,7 +2,7 @@ import os
 import re
 
 
-def generate_urls(txt: str, strip_www=False):
+def extract_urls_from_text(txt: str, strip_www=False):
     """function that converts block of txt into list of urls"""
     urls: list = []
     regx = r"(?:https:\/\/|http:\/\/)?([a-zA-Z0-9\-]{2,}(?:\.[a-zA-Z0-9\-]{2,})*(?:\.[a-zA-Z\-]{2,}))"

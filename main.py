@@ -1,6 +1,6 @@
 import streamlit as st
 import datetime
-from generate_urls import generate_urls
+from generate_urls import extract_urls_from_text
 from download_whois import download_whois_creationdate
 from download_ia import download_iacdx_earliestdate
 from compare_urls import was_created_before_earliest_archive
@@ -26,9 +26,44 @@ option = st.selectbox(
     placeholder="Select quantity type...",
 )
 
-if option == "Bulk":
+if option == "Individual":
+    st.text_input(
+        "Text to extract URL from",
+        help="URL is extracted from the text, so formatting does not matter",
+        placeholder="Example: archive.org",
+        key="url",
+    )
+    st.radio(
+        "Output Style",
+        ["Internal Note"],
+        horizontal=True,
+        key="output_style",
+    )
+
+    with st.expander("Configurations", True):
+        st.toggle("Strip www from url?", key="stripwww")
+
+    if st.session_state.output_style == "Internal Note" and st.session_state.url != "":
+        url = extract_urls_from_text(st.session_state.url, st.session_state.stripwww)[0]
+        whois_creationdate = download_whois_creationdate(url)
+        ia_earliestdate = download_iacdx_earliestdate(url)
+        created_before_earliest_archive = (
+            was_created_before_earliest_archive(whois_creationdate, ia_earliestdate)
+            if isinstance(whois_creationdate, datetime.date)
+            and isinstance(ia_earliestdate, datetime.date)
+            else "Manual Check required"
+        )
+        st.code(
+            f"Domain                         : {url}\n"
+            + f"WHOIS Creation Date            : {whois_creationdate}\n"
+            + f"Earliest WBM Archive           : {ia_earliestdate}\n"
+            + f"created_before_earliest_archive: {created_before_earliest_archive}"
+        )
+        st.divider()
+
+elif option == "Bulk":
     st.text_area(
-        "Text to analyze",
+        "Text to extract URLs from",
         help="URLs are extracted from the text block, so formatting does not matter",
         placeholder="Example: archive.org wikipedia.org ...",
         key="urls",
@@ -42,15 +77,14 @@ if option == "Bulk":
         key="output_style",
     )
 
-    if st.session_state.output_style == "Internal Note":
-        with st.expander("Configurations", True):
-            st.toggle("Group notes into single block?", key="group")
-
     # st.experimental_set_query_params(urls=st.session_state.urls)
 
     if st.session_state.output_style == "Internal Note":
+        with st.expander("Configurations", True):
+            st.toggle("Group notes into single block?", key="group")
+            st.toggle("Strip www from url?", key="stripwww")
         notes = []
-        urls = generate_urls(st.session_state.urls, True)
+        urls = extract_urls_from_text(st.session_state.urls, st.session_state.stripwww)
         for url in urls:
             whois_creationdate = download_whois_creationdate(url)
             ia_earliestdate = download_iacdx_earliestdate(url)
@@ -75,11 +109,13 @@ if option == "Bulk":
                 st.divider()
 
     elif st.session_state.output_style == "Date Comparison":
+        with st.expander("Configurations", True):
+            st.toggle("Strip www from url?", key="stripwww")
         before_earliest_archive = []
         after_earliest_archive = []
         unknown = []
         # Creation date is before earliest WBM date
-        urls = generate_urls(st.session_state.urls, True)
+        urls = extract_urls_from_text(st.session_state.urls, st.session_state.stripwww)
         for url in urls:
             whois_creationdate = download_whois_creationdate(url)
             ia_earliestdate = download_iacdx_earliestdate(url)
@@ -105,11 +141,24 @@ if option == "Bulk":
                 )
 
         st.header("Creation date is before earliest WBM date")
-        st.code("\n".join(before_earliest_archive))
+        st.code(
+            (
+                "\n".join(before_earliest_archive)
+                if len(before_earliest_archive) > 0
+                else "None"
+            )
+        )
         st.divider()
         st.header("Creation date is after earliest WBM date")
-        st.code("\n".join(after_earliest_archive))
+        st.code(
+            (
+                "\n".join(after_earliest_archive)
+                if len(after_earliest_archive) > 0
+                else "None"
+            )
+        )
         st.divider()
-        st.header("Manual Verification Required")
-        st.code("\n\n".join(unknown))
-        st.divider()
+        if len(unknown) > 0:
+            st.header("Manual Verification Required")
+            st.code("\n\n".join(unknown))
+            st.divider()
