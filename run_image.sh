@@ -2,7 +2,7 @@
 
 # In the future, this should rely on docker-compose
 
-DOCKER_IMAGE=wbm-excusion-tool
+DOCKER_IMAGE=wbm-exclusion-tool
 
 set -o allexport
 source .env
